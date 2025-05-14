@@ -1,0 +1,71 @@
+name: Check golang.org/x/crypto Dependencies
+
+on:
+  workflow_call:
+    inputs:
+      base_ref:
+        description: 'Base branch ref for comparison'
+        required: true
+        type: string
+      head_sha:
+        description: 'PR head SHA'
+        required: true
+        type: string
+
+jobs:
+  check-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5.4.0
+        with:
+          go-version-file: go.mod
+
+      - name: Get base branch dependencies
+        run: |
+          git checkout ${{ inputs.base_ref }}
+          go mod graph > deps-base.txt
+
+      - name: Get PR branch dependencies
+        run: |
+          git checkout ${{ inputs.head_sha }}
+          go mod graph > deps-pr.txt
+
+      - name: Analyze crypto dependencies
+        run: |
+          echo "=== Dependency Report ==="
+          echo ""
+          
+          # Check dependencies prior to PR
+          echo "Current project dependencies on golang.org/x/crypto:"
+          if grep -q " golang.org/x/crypto@" deps-base.txt; then
+            echo "::warning::Project already depends on golang.org/x/crypto through:"
+            grep " golang.org/x/crypto@" deps-base.txt | sed 's/^/ 🔹 /'
+          else
+            echo "✅ No existing dependency on golang.org/x/crypto found in base branch"
+          fi
+
+          echo ""
+          
+          # Check for new dependencies introduced by PR
+          echo "Changes introduced by this PR:"
+          if ! grep -q " golang.org/x/crypto@" deps-pr.txt; then
+            echo "✅ PR does not introduce any new dependencies on golang.org/x/crypto"
+          else
+            NEW_DEPS=$(comm -13 <(sort deps-base.txt) <(sort deps-pr.txt) | grep " golang.org/x/crypto@" || true)
+            if [ -z "$NEW_DEPS" ]; then
+              echo "ℹ️ PR modifies but doesn't add new x/crypto dependencies"
+            else
+              echo "::warning::This PR introduces new dependencies on golang.org/x/crypto:"
+              echo "$NEW_DEPS" | sed 's/^/ 🔹 /'
+              echo ""
+            fi
+          fi
+
+          echo ""
+          echo "=== End of Report ==="
