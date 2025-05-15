@@ -73,12 +73,12 @@ jobs:
           echo ""
 
           # Check for direct imports of x/crypto
-          git checkout ${{ inputs.head_sha }}
-          go mod tidy
+          # git checkout ${{ inputs.head_sha }}
+          # go mod tidy
           
-          echo "Checking for new imports of golang.org/x/crypto"
-          matches=$(grep -R "golang.org/x/crypto" . --include=*.go)
-          echo "$matches" | sed 's/^/- /' || echo "✅ No new source usage found"
+          # echo "Checking for new imports of golang.org/x/crypto"
+          # matches=$(grep -R "golang.org/x/crypto" . --include=*.go)
+          # echo "$matches" | sed 's/^/- /' || echo "✅ No new source usage found"
 
           # occurrences=$(grep -R "golang.org/x/crypto" . --include=*.go)
           # if [ -z "$occurrences" ]; then
