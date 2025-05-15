@@ -54,7 +54,7 @@ jobs:
 
           # Check for new dependencies introduced by PR
           echo "Changes introduced by this PR:"
-          if !grep -q " golang.org/x/crypto@" deps-pr.txt; then
+          if ! grep -q " golang.org/x/crypto@" deps-pr.txt; then
             echo "✅ PR does not introduce any new dependencies on golang.org/x/crypto"
           else
             new_deps=$(comm -13 <(sort deps-base.txt) <(sort deps-pr.txt) | grep " golang.org/x/crypto@" || true)
