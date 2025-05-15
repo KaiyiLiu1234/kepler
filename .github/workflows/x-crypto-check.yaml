@@ -13,7 +13,7 @@ on:
         type: string
 
 jobs:
-  check-deps:
+  check-x-crypto-deps:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,14 +29,17 @@ jobs:
       - name: Get base branch dependencies
         run: |
           git checkout ${{ inputs.base_ref }}
+          go mod tidy
           go mod graph > deps-base.txt
 
       - name: Get PR branch dependencies
         run: |
           git checkout ${{ inputs.head_sha }}
+          go mod tidy
           go mod graph > deps-pr.txt
 
       - name: Analyze crypto dependencies
+        shell: bash
         run: |
           echo "=== Dependency Report ==="
           echo ""
@@ -71,6 +74,7 @@ jobs:
 
           # Check for direct imports of x/crypto
           git checkout ${{ inputs.head_sha }}
+          go mod tidy
           echo "Checking for new imports of golang.org/x/crypto"
           occurrences=$(grep -R "golang.org/x/crypto" . --include=*.go)
           if [ -z "$occurrences" ]; then
