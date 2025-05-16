@@ -2,7 +2,6 @@ name: PR Checks
 
 on: # yamllint disable-line rule:truthy
   pull_request:
-    branches: [reboot]
 
 jobs:
   check-changes:
@@ -22,6 +21,11 @@ jobs:
               - '**/*.go'
               - 'go.mod'
               - 'go.sum'
+  check-x-crypto-deps:
+    uses: ./.github/workflows/x-crypto-check.yaml
+    with:
+      base_ref: ${{ github.event.pull_request.base.ref }}
+      head_sha: ${{ github.event.pull_request.head.sha }}
   fmt:
     needs: check-changes
     if: needs.check-changes.outputs.changes == 'true'
