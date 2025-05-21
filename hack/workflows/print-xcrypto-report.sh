@@ -33,6 +33,7 @@ fi
 echo ""
 
 # Check for direct imports of x/crypto
+echo "Locate any direct dependencies on golang.org/x/crypto:"
 occurrences=$(< deps-direct.txt)
 if [ -z "$occurrences" ]; then
     echo "✅ No direct imports of golang.org/x/crypto found"

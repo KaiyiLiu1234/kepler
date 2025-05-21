@@ -44,4 +44,4 @@ runs:
 
     - name: Analyze crypto dependencies
       shell: bash
-      run: hack/workflows/print-xcrypto-report.sh
+      run: ./hack/workflows/print-xcrypto-report.sh
