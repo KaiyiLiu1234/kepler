@@ -40,7 +40,7 @@ runs:
       run: |
         git checkout ${{ inputs.head_sha }}
         go mod tidy
-        grep -R "golang.org/x/crypto" . --include=*.go > deps-direct.txt
+        grep -R "golang.org/x/crypto" . --include=*.go > deps-direct.txt || touch deps-direct.txt
 
     - name: Analyze crypto dependencies
       shell: bash
