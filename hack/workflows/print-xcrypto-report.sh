@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
-echo "=== Dependency Report ==="
+echo "\033[1;36m=== Dependency Report ===\033[0m"
 echo ""
 
 # Check dependencies prior to PR
-echo "Current Kepler dependencies on golang.org/x/crypto:"
+echo "ℹ️ Current Kepler dependencies on golang.org/x/crypto:"
 if grep -q " golang.org/x/crypto@" deps-base.txt; then
     echo "::warning::Kepler already depends on golang.org/x/crypto through the following:"
     grep " golang.org/x/crypto@" deps-base.txt | sed 's/^/ 🔹 /'
@@ -16,7 +16,7 @@ fi
 echo ""
 
 # Check for new dependencies introduced by PR
-echo "Changes introduced by this PR:"
+echo "ℹ️ Changes introduced by this PR:"
 if ! grep -q " golang.org/x/crypto@" deps-pr.txt; then
     echo "✅ PR does not introduce any new dependencies on golang.org/x/crypto"
 else
@@ -33,7 +33,7 @@ fi
 echo ""
 
 # Check for direct imports of x/crypto
-echo "Locate any direct dependencies on golang.org/x/crypto:"
+echo "ℹ️ Locate any direct dependencies on golang.org/x/crypto:"
 occurrences=$(< deps-direct.txt)
 if [ -z "$occurrences" ]; then
     echo "✅ No direct imports of golang.org/x/crypto found"
@@ -43,4 +43,4 @@ else
 fi
 
 echo ""
-echo "=== End of Report ==="
+echo "\033[1;36m=== End of Dependency Report ===\033[0m"
