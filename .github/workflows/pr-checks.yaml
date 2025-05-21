@@ -2,7 +2,7 @@ name: PR Checks
 
 on: # yamllint disable-line rule:truthy
   pull_request:
-    branches: [reboot]
+    #branches: [reboot]
 
 jobs:
   check-changes:
@@ -40,10 +40,12 @@ jobs:
         run: make fmt && git diff --exit-code
 
   check-x-crypto-deps:
-    uses: ./.github/workflows/x-crypto-check.yaml
-    with:
-      base_ref: ${{ github.event.pull_request.base.ref }}
-      head_sha: ${{ github.event.pull_request.head.sha }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/check-x-crypto
+        with:
+          base_ref: ${{ github.event.pull_request.base.ref }}
+          head_sha: ${{ github.event.pull_request.head.sha }}
 
   lint:
     needs: check-changes

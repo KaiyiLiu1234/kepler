@@ -36,6 +36,12 @@ jobs:
           go mod tidy
           go mod graph > deps-pr.txt
 
+      - name: Get Direct imports
+        run: |
+          git checkout ${{ inputs.head_sha }}
+          go mod tidy
+          grep -R "golang.org/x/crypto" . --include=*.go > deps-direct.txt
+
       - name: Analyze crypto dependencies
         shell: bash
         run: |
@@ -71,10 +77,7 @@ jobs:
           echo ""
 
           # Check for direct imports of x/crypto
-          git checkout ${{ inputs.head_sha }}
-          go mod tidy
-
-          occurrences=$(grep -R "golang.org/x/crypto" . --include=*.go || true)
+          occurrences=$(< deps-direct.txt)
           if [ -z "$occurrences" ]; then
             echo "✅ No direct imports of golang.org/x/crypto found"
           else

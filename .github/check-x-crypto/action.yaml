@@ -1,0 +1,47 @@
+name: Check golang.org/x/crypto Dependencies
+description: Checks if PR and code base contains dependencies on golang.org/x/crypto
+inputs:
+  base_ref:
+    description: Base branch
+    required: true
+  head_sha:
+    description: Head commit SHA
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v5.4.0
+      with:
+        go-version-file: go.mod
+
+    - name: Get base branch dependencies on x/crypto
+      shell: bash
+      run: |
+        git checkout ${{ inputs.base_ref }}
+        go mod tidy
+        go mod graph > deps-base.txt
+
+    - name: Get PR branch dependencies on x/crypto
+      shell: bash
+      run: |
+        git checkout ${{ inputs.head_sha }}
+        go mod tidy
+        go mod graph > deps-pr.txt
+
+    - name: Get Direct imports of x/crypto
+      shell: bash
+      run: |
+        git checkout ${{ inputs.head_sha }}
+        go mod tidy
+        grep -R "golang.org/x/crypto" . --include=*.go > deps-direct.txt
+
+    - name: Analyze crypto dependencies
+      shell: bash
+      run: hack/workflows/print-xcrypto-report.sh
