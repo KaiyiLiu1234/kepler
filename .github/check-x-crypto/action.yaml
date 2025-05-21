@@ -24,21 +24,21 @@ runs:
     - name: Get base branch dependencies on x/crypto
       shell: bash
       run: |
-        git checkout ${{ inputs.base_ref }}
+        git checkout -q ${{ inputs.base_ref }}
         go mod tidy
         go mod graph > deps-base.txt
 
     - name: Get PR branch dependencies on x/crypto
       shell: bash
       run: |
-        git checkout ${{ inputs.head_sha }}
+        git checkout -q ${{ inputs.head_sha }}
         go mod tidy
         go mod graph > deps-pr.txt
 
     - name: Get Direct imports of x/crypto
       shell: bash
       run: |
-        git checkout ${{ inputs.head_sha }}
+        git checkout -q ${{ inputs.head_sha }}
         go mod tidy
         grep -R "golang.org/x/crypto" . --include=*.go > deps-direct.txt || touch deps-direct.txt
 
