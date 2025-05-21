@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
-echo "\033[1;36m=== Dependency Report ===\033[0m"
+echo "=== Dependency Report ==="
 echo ""
 
 # Check dependencies prior to PR
@@ -43,4 +43,4 @@ else
 fi
 
 echo ""
-echo "\033[1;36m=== End of Dependency Report ===\033[0m"
+echo "=== End of Dependency Report ==="
