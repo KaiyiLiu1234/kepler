@@ -47,7 +47,7 @@ generate_dependency_report() {
     if grep -q " golang.org/x/crypto@" /tmp/deps-base.txt; then
         log_and_save "⚠️ Kepler already depends on golang.org/x/crypto through the following:"
         existing_deps=$(grep " golang.org/x/crypto@" /tmp/deps-base.txt | sed 's/^/ 🔹 /')
-        log_and_save '\t'"$existing_deps"
+        log_and_save "$existing_deps"
     else
         log_and_save "✅ No existing dependency on golang.org/x/crypto found in base branch"
     fi
@@ -65,7 +65,7 @@ generate_dependency_report() {
         else
             log_and_save "⚠️ PR introduces new dependencies on golang.org/x/crypto:"
             pr_deps=$(echo "$new_deps" | sed 's/^/ 🔹 /')
-            log_and_save '\t'"$pr_deps"
+            log_and_save "$pr_deps"
             log_and_save ""
         fi
     fi
@@ -80,7 +80,7 @@ generate_dependency_report() {
     else
         log_and_save "⚠️ Discovered direct imports of golang.org/x/crypto:"
         direct_deps=$(echo "$occurrences" | sed 's/^/ 🔹 /')
-        log_and_save '\t'"$direct_deps"
+        log_and_save "$direct_deps"
     fi
 
     log_and_save ""
