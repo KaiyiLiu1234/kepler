@@ -21,27 +21,6 @@ runs:
       with:
         go-version-file: go.mod
 
-    - name: Get base branch dependencies on x/crypto
-      shell: bash
-      run: |
-        git checkout -q ${{ inputs.base_ref }}
-        go mod tidy
-        go mod graph > deps-base.txt
-
-    - name: Get PR branch dependencies on x/crypto
-      shell: bash
-      run: |
-        git checkout -q ${{ inputs.head_sha }}
-        go mod tidy
-        go mod graph > deps-pr.txt
-
-    - name: Get Direct imports of x/crypto
-      shell: bash
-      run: |
-        git checkout -q ${{ inputs.head_sha }}
-        go mod tidy
-        grep -R "golang.org/x/crypto" . --include=*.go > deps-direct.txt || touch deps-direct.txt
-
     - name: Analyze crypto dependencies
       shell: bash
-      run: ./hack/workflows/print-xcrypto-report.sh
+      run: ./hack/workflows/print-xcrypto-report.sh --base-ref ${{ inputs.base_ref }} --head-sha ${{ inputs.head_sha }}

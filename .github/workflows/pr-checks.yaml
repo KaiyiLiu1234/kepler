@@ -51,11 +51,17 @@ jobs:
           go-version-file: go.mod
           cache: false
 
-      - name: search for x/crypto dependencies
+      - name: Search for x/crypto dependencies
         uses: ./.github/check-x-crypto
         with:
           base_ref: ${{ github.event.pull_request.base.ref }}
           head_sha: ${{ github.event.pull_request.head.sha }}
+
+      - name: Comment x/crypto dependencies to PR
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          filePath: /tmp/check-xcrypto-report.txt
+          comment-tag: xcrypto-check
 
   lint:
     needs: check-changes
