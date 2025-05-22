@@ -60,7 +60,7 @@ jobs:
       - name: Append run info to x/crypto report
         run: |
           echo "" >> /tmp/check-xcrypto-report.txt
-          echo "_(execution **${{ github.run_id }}** / attempt **${{ github.run_attempt }}** )_" >> /tmp/check-xcrypto-report.txt
+          echo "_(execution **${{ github.run_id }}**)_" >> /tmp/check-xcrypto-report.txt
 
       - name: Comment x/crypto dependencies to PR
         uses: thollander/actions-comment-pull-request@v3
