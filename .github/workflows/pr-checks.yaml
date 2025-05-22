@@ -57,6 +57,11 @@ jobs:
           base_ref: ${{ github.event.pull_request.base.ref }}
           head_sha: ${{ github.event.pull_request.head.sha }}
 
+      - name: Append run info to x/crypto report
+        run: |
+          echo "" >> /tmp/check-xcrypto-report.txt
+          echo "_(execution **${{ github.run_id }}** / attempt **${{ github.run_attempt }}** )_" >> /tmp/check-xcrypto-report.txt
+
       - name: Comment x/crypto dependencies to PR
         uses: thollander/actions-comment-pull-request@v3
         with:

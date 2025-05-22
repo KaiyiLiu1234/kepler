@@ -15,13 +15,13 @@ log_and_save() {
 }
 
 print_help() {
-    cat <<EOF
-⚙️ Options:
-  -h|--help
-  --base-ref
-  --head-sha
-  --report-path
-EOF
+    cat <<-EOF
+        ⚙️ Options:
+		-h|--help       show this help
+        --base-ref      git reference to base of PR
+        --head-sha      git commit SHA of latest commit in PR
+        --report-path   filepath to store the report (ex. /tmp/check-xcrypto-report.txt)
+	EOF
 }
 
 generate_dependency_report() {
@@ -45,7 +45,7 @@ generate_dependency_report() {
     # Check dependencies prior to PR
     log_and_save "ℹ️ Current Kepler dependencies on golang.org/x/crypto:"
     if grep -q " golang.org/x/crypto@" /tmp/deps-base.txt; then
-        log_and_save "::warning::Kepler already depends on golang.org/x/crypto through the following:"
+        log_and_save "⚠️ Kepler already depends on golang.org/x/crypto through the following:"
         existing_deps=$(grep " golang.org/x/crypto@" /tmp/deps-base.txt | sed 's/^/ 🔹 /')
         log_and_save "$existing_deps"
     else
@@ -61,9 +61,9 @@ generate_dependency_report() {
     else
         new_deps=$(comm -13 <(sort /tmp/deps-base.txt) <(sort /tmp/deps-pr.txt) | grep " golang.org/x/crypto@" || true)
         if [ -z "$new_deps" ]; then
-            log_and_save "::notice::PR doesn't add new x/crypto dependencies (note it is possible this PR depends on existing x/crypto dependencies)"
+            log_and_save "❗PR doesn't add new x/crypto dependencies (note it is possible this PR depends on existing x/crypto dependencies)"
         else
-            log_and_save "::warning::PR introduces new dependencies on golang.org/x/crypto:"
+            log_and_save "⚠️ PR introduces new dependencies on golang.org/x/crypto:"
             pr_deps=$(echo "$new_deps" | sed 's/^/ 🔹 /')
             log_and_save "$pr_deps"
             log_and_save ""
@@ -78,7 +78,7 @@ generate_dependency_report() {
     if [ -z "$occurrences" ]; then
         log_and_save "✅ No direct imports of golang.org/x/crypto found"
     else
-        log_and_save "::warning::Discovered direct imports of golang.org/x/crypto:"
+        log_and_save "⚠️ Discovered direct imports of golang.org/x/crypto:"
         direct_deps=$(echo "$occurrences" | sed 's/^/ 🔹 /')
         log_and_save "$direct_deps"
     fi
