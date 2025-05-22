@@ -60,7 +60,7 @@ jobs:
       - name: Comment x/crypto dependencies to PR
         uses: thollander/actions-comment-pull-request@v3
         with:
-          filePath: /tmp/check-xcrypto-report.txt
+          file-path: /tmp/check-xcrypto-report.txt
           comment-tag: xcrypto-check
 
   lint:
