@@ -30,6 +30,7 @@ func (pm *PowerMonitor) firstContainerRead(snapshot *Snapshot) error {
 			container.Zones[zone] = Usage{
 				Power:       Power(0), // No power in first read - no delta time to calculate rate
 				EnergyTotal: activeEnergy,
+				EnergyDelta: activeEnergy,
 			}
 		}
 
@@ -56,6 +57,7 @@ func newContainer(cntr *resource.Container, zones NodeZoneUsageMap) *Container {
 		container.Zones[zone] = Usage{
 			EnergyTotal: Energy(0),
 			Power:       Power(0),
+			EnergyDelta: Energy(0),
 		}
 	}
 
@@ -133,6 +135,7 @@ func (pm *PowerMonitor) calculateContainerPower(prev, newSnapshot *Snapshot) err
 			container.Zones[zone] = Usage{
 				Power:       Power(cpuTimeRatio * nodeZoneUsage.ActivePower.MicroWatts()),
 				EnergyTotal: absoluteEnergy,
+				EnergyDelta: activeEnergy,
 			}
 		}
 

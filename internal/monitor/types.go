@@ -44,6 +44,7 @@ type NodeUsage struct {
 type Usage struct {
 	EnergyTotal Energy // Cumulative joules counter
 	Power       Power  // Current power in watts
+	EnergyDelta Energy // Current Energy Gauge
 }
 
 // ZoneUsageMap maps energy zones to basic usage data (absolute energy and power).

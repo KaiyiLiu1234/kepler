@@ -31,6 +31,12 @@ const (
 	// StdoutFeature represents the stdout exporter feature
 	StdoutFeature Feature = "stdout"
 
+	// CSVFeature represents the CSV Exporter feature for model training data collection
+	CSVFeature Feature = "csv"
+
+	// VMFeature represents the VM Exporter feature for model training data collection
+	VMFeature Feature = "vm"
+
 	// PprofFeature represents the pprof debug endpoints feature
 	PprofFeature Feature = "pprof"
 )
@@ -91,9 +97,24 @@ type (
 		MetricsLevel    Level    `yaml:"metricsLevel"`
 	}
 
+	CSVExporter struct {
+		Enabled    *bool   `yaml:"enabled"`
+		OutputPath *string `yaml:"output-path"`
+		Duration   *string `yaml:"duration"` // e.g., "5m", "1h"
+	}
+
+	VMExporter struct {
+		Enabled    *bool   `yaml:"enabled"`
+		OutputPath *string `yaml:"output-path"`
+		Duration   *string `yaml:"duration"` // e.g., "5m", "1h"
+		VMID       *string `yaml:"vmid"`
+	}
+
 	Exporter struct {
 		Stdout     StdoutExporter     `yaml:"stdout"`
 		Prometheus PrometheusExporter `yaml:"prometheus"`
+		CSV        CSVExporter        `yaml:"csv"`
+		VM         VMExporter         `yaml:"vm"`
 	}
 
 	// Debug configuration
@@ -217,6 +238,16 @@ const (
 	ExporterStdoutEnabledFlag = "exporter.stdout"
 
 	ExporterPrometheusEnabledFlag = "exporter.prometheus"
+
+	ExporterCSVEnabledFlag    = "exporter.csv"
+	ExporterCSVOutputPathFlag = "csv.output-path"
+	ExporterCSVDurationFlag   = "csv.duration"
+
+	ExporterVMEnabledFlag    = "exporter.vm"
+	ExporterVMOutputPathFlag = "vm.output-path"
+	ExporterVMDurationFlag   = "vm.duration"
+	ExporterVMIDFlag         = "vm.vmid"
+
 	// NOTE: not a flag
 	ExporterPrometheusDebugCollectors = "exporter.prometheus.debug-collectors"
 	ExporterPrometheusMetricsFlag     = "metrics"
@@ -263,6 +294,17 @@ func DefaultConfig() *Config {
 				Enabled:         ptr.To(true),
 				DebugCollectors: []string{"go"},
 				MetricsLevel:    MetricsLevelAll,
+			},
+			CSV: CSVExporter{
+				Enabled:    ptr.To(false),
+				OutputPath: ptr.To("/tmp/kepler_cpu_usage.csv"),
+				Duration:   ptr.To("5m"),
+			},
+			VM: VMExporter{
+				Enabled:    ptr.To(false),
+				OutputPath: ptr.To("/tmp/kepler_vm_energy.csv"),
+				Duration:   ptr.To("5m"),
+				VMID:       ptr.To("whisper!"),
 			},
 		},
 		Debug: Debug{
@@ -372,6 +414,15 @@ func RegisterFlags(app *kingpin.Application) ConfigUpdaterFn {
 	metricsLevel := MetricsLevelAll
 	app.Flag(ExporterPrometheusMetricsFlag, "Metrics levels to export (node,process,container,vm,pod)").SetValue(NewMetricsLevelValue(&metricsLevel))
 
+	csvExporterEnabled := app.Flag(ExporterCSVEnabledFlag, "Enable CSV Exporter").Default("false").Bool()
+	csvOutputPath := app.Flag(ExporterCSVOutputPathFlag, "CSV output file path").Default("/tmp/kepler_cpu_usage.csv").String()
+	csvDuration := app.Flag(ExporterCSVDurationFlag, "CSV recording duration (e.g., 5m, 1h)").Default("5m").String()
+
+	vmExporterEnabled := app.Flag(ExporterVMEnabledFlag, "Enable VM Exporter").Default("false").Bool()
+	vmOutputPath := app.Flag(ExporterVMOutputPathFlag, "VM output file path").Default("/tmp/kepler_vm_energy.csv").String()
+	vmDuration := app.Flag(ExporterVMDurationFlag, "VM recording duration (e.g., 5m, 1h)").Default("5m").String()
+	vmVMID := app.Flag(ExporterVMIDFlag, "VM ID of target virtual machine").Default("whisper!").String()
+
 	kubernetes := app.Flag(KubernetesFlag, "Monitor kubernetes").Default("false").Bool()
 	kubeconfig := app.Flag(KubeConfigFlag, "Path to a kubeconfig. Only required if out-of-cluster.").ExistingFile()
 	nodeName := app.Flag(KubeNodeNameFlag, "Name of kubernetes node on which kepler is running.").String()
@@ -429,6 +480,34 @@ func RegisterFlags(app *kingpin.Application) ConfigUpdaterFn {
 
 		if flagsSet[ExporterPrometheusMetricsFlag] {
 			cfg.Exporter.Prometheus.MetricsLevel = metricsLevel
+		}
+
+		if flagsSet[ExporterCSVEnabledFlag] {
+			cfg.Exporter.CSV.Enabled = csvExporterEnabled
+		}
+
+		if flagsSet[ExporterCSVOutputPathFlag] {
+			cfg.Exporter.CSV.OutputPath = csvOutputPath
+		}
+
+		if flagsSet[ExporterCSVDurationFlag] {
+			cfg.Exporter.CSV.Duration = csvDuration
+		}
+
+		if flagsSet[ExporterVMEnabledFlag] {
+			cfg.Exporter.VM.Enabled = vmExporterEnabled
+		}
+
+		if flagsSet[ExporterVMOutputPathFlag] {
+			cfg.Exporter.VM.OutputPath = vmOutputPath
+		}
+
+		if flagsSet[ExporterVMDurationFlag] {
+			cfg.Exporter.VM.Duration = vmDuration
+		}
+
+		if flagsSet[ExporterVMIDFlag] {
+			cfg.Exporter.VM.VMID = vmVMID
 		}
 
 		if flagsSet[KubernetesFlag] {
@@ -560,6 +639,10 @@ func (c *Config) IsFeatureEnabled(feature Feature) bool {
 		return ptr.Deref(c.Exporter.Prometheus.Enabled, false)
 	case StdoutFeature:
 		return ptr.Deref(c.Exporter.Stdout.Enabled, false)
+	case CSVFeature:
+		return ptr.Deref(c.Exporter.CSV.Enabled, false)
+	case VMFeature:
+		return ptr.Deref(c.Exporter.VM.Enabled, false)
 	case PprofFeature:
 		return ptr.Deref(c.Debug.Pprof.Enabled, false)
 	default:
@@ -600,6 +683,22 @@ func (c *Config) sanitize() {
 	for i := range c.Exporter.Prometheus.DebugCollectors {
 		c.Exporter.Prometheus.DebugCollectors[i] = strings.TrimSpace(c.Exporter.Prometheus.DebugCollectors[i])
 	}
+
+	if c.Exporter.CSV.OutputPath != nil {
+		trimmed := strings.TrimSpace(*c.Exporter.CSV.OutputPath)
+		c.Exporter.CSV.OutputPath = &trimmed
+	}
+
+	if c.Exporter.VM.OutputPath != nil {
+		trimmed := strings.TrimSpace(*c.Exporter.VM.OutputPath)
+		c.Exporter.VM.OutputPath = &trimmed
+	}
+
+	if c.Exporter.VM.VMID != nil {
+		trimmed := strings.TrimSpace(*c.Exporter.VM.VMID)
+		c.Exporter.VM.VMID = &trimmed
+	}
+
 	c.Kube.Config = strings.TrimSpace(c.Kube.Config)
 
 	if c.Experimental == nil {

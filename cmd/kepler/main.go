@@ -9,13 +9,16 @@ import (
 	"log/slog"
 	"os"
 	"syscall"
+	"time"
 
 	"github.com/alecthomas/kingpin/v2"
 
 	"github.com/sustainable-computing-io/kepler/config"
 	"github.com/sustainable-computing-io/kepler/internal/device"
+	"github.com/sustainable-computing-io/kepler/internal/exporter/csvlogger"
 	"github.com/sustainable-computing-io/kepler/internal/exporter/prometheus"
 	"github.com/sustainable-computing-io/kepler/internal/exporter/stdout"
+	"github.com/sustainable-computing-io/kepler/internal/exporter/vmlogger"
 	"github.com/sustainable-computing-io/kepler/internal/k8s/pod"
 	"github.com/sustainable-computing-io/kepler/internal/logger"
 	"github.com/sustainable-computing-io/kepler/internal/monitor"
@@ -206,6 +209,23 @@ func createServices(logger *slog.Logger, cfg *config.Config) ([]service.Service,
 		services = append(services, stdoutExporter)
 	}
 
+	// Add CSV Exporter if enabled
+	if cfg.IsFeatureEnabled(config.CSVFeature) {
+		csvExporter, err := createCSVExporter(logger, cfg, pm)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create CSV exporter: %w", err)
+		}
+		services = append(services, csvExporter)
+	}
+
+	if cfg.IsFeatureEnabled(config.VMFeature) {
+		vmExporter, err := createVMExporter(logger, cfg, pm)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create VM exporter: %w", err)
+		}
+		services = append(services, vmExporter)
+	}
+
 	return services, nil
 }
 
@@ -252,6 +272,43 @@ func createPrometheusExporter(
 	)
 
 	return promExporter, nil
+}
+
+func createCSVExporter(logger *slog.Logger, cfg *config.Config, pm *monitor.PowerMonitor) (*csvlogger.CSVLogger, error) {
+	logger.Debug("Creating CSV exporter")
+
+	duration, err := time.ParseDuration(*cfg.Exporter.CSV.Duration)
+	if err != nil {
+		return nil, fmt.Errorf("invalid CSV duration: %w", err)
+	}
+
+	csvExporter := csvlogger.NewCSVLogger(
+		pm,
+		csvlogger.WithLogger(logger),
+		csvlogger.WithOutputPath(*cfg.Exporter.CSV.OutputPath),
+		csvlogger.WithDuration(duration),
+	)
+
+	return csvExporter, nil
+}
+
+func createVMExporter(logger *slog.Logger, cfg *config.Config, pm *monitor.PowerMonitor) (*vmlogger.VMLogger, error) {
+	logger.Debug("Creating VM exporter")
+
+	duration, err := time.ParseDuration(*cfg.Exporter.VM.Duration)
+	if err != nil {
+		return nil, fmt.Errorf("invalid VM duration: %w", err)
+	}
+
+	vmExporter := vmlogger.NewVMLogger(
+		pm,
+		vmlogger.WithLogger(logger),
+		vmlogger.WithOutputPath(*cfg.Exporter.VM.OutputPath),
+		vmlogger.WithDuration(duration),
+		vmlogger.WithVMID(*cfg.Exporter.VM.VMID),
+	)
+
+	return vmExporter, nil
 }
 
 func createCPUMeter(logger *slog.Logger, cfg *config.Config) (device.CPUPowerMeter, error) {

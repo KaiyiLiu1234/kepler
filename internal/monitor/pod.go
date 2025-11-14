@@ -30,6 +30,7 @@ func (pm *PowerMonitor) firstPodRead(snapshot *Snapshot) error {
 			pod.Zones[zone] = Usage{
 				Power:       Power(0), // No power in first read - no delta time to calculate rate
 				EnergyTotal: activeEnergy,
+				EnergyDelta: activeEnergy,
 			}
 		}
 
@@ -111,6 +112,7 @@ func (pm *PowerMonitor) calculatePodPower(prev, newSnapshot *Snapshot) error {
 			pod.Zones[zone] = Usage{
 				EnergyTotal: absoluteEnergy,
 				Power:       Power(cpuTimeRatio * float64(nodeZoneUsage.ActivePower)),
+				EnergyDelta: activeEnergy,
 			}
 		}
 
@@ -145,6 +147,7 @@ func newPod(pod *resource.Pod, zones NodeZoneUsageMap) *Pod {
 		p.Zones[zone] = Usage{
 			EnergyTotal: Energy(0),
 			Power:       Power(0),
+			EnergyDelta: Energy(0),
 		}
 	}
 
