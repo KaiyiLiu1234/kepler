@@ -59,6 +59,11 @@ func (m MockRaplZone) MaxEnergy() Energy {
 	return m.maxMicroJoules
 }
 
+func (m MockRaplZone) Power() (float64, error) {
+	// Mock RAPL zones don't provide power
+	return 0, nil
+}
+
 func (m *MockRaplZone) OnEnergy(j Energy, err error) {
 	m.energy = j
 	m.energyErr = err

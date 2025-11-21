@@ -24,6 +24,11 @@ type EnergyZone interface {
 	// When energy usage reaches this value, the energy value returned by Energy()
 	// will wrap around and start again from zero.
 	MaxEnergy() Energy
+
+	// Power() returns the current power consumption in watts.
+	// This method is used for zones that provide instantaneous power readings
+	// rather than cumulative energy counters.
+	Power() (float64, error)
 }
 
 // CPUPowerMeter implements powerMeter

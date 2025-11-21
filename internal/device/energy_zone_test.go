@@ -33,6 +33,10 @@ func (m *mockEnergyZone) Energy() (Energy, error) {
 	return m.energy, m.err
 }
 func (m *mockEnergyZone) MaxEnergy() Energy { return m.maxEnergy }
+func (m *mockEnergyZone) Power() (float64, error) {
+	// Mock zones don't provide power
+	return 0, nil
+}
 
 // SetEnergy safely updates the energy value for testing
 func (m *mockEnergyZone) SetEnergy(energy Energy) {

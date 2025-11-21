@@ -51,6 +51,13 @@ type (
 		Zones []string `yaml:"zones"`
 	}
 
+	// Hwmon configuration (Developer for now)
+	Hwmon struct {
+		Enabled *bool    `yaml:"enabled"` // Development mode settings (sensor detection should be set based on architecture)
+		Zones   []string `yaml:"zones"`
+		Chips   []string `yaml:"chips"`
+	}
+
 	// Development mode settings; disabled by default
 	Dev struct {
 		FakeCpuMeter struct {
@@ -134,6 +141,7 @@ type (
 		Host     Host     `yaml:"host"`
 		Monitor  Monitor  `yaml:"monitor"`
 		Rapl     Rapl     `yaml:"rapl"`
+		Hwmon    Hwmon    `yaml:"hwmon"`
 		Exporter Exporter `yaml:"exporter"`
 		Web      Web      `yaml:"web"`
 		Debug    Debug    `yaml:"debug"`
@@ -247,6 +255,14 @@ func DefaultConfig() *Config {
 		},
 		Rapl: Rapl{
 			Zones: []string{},
+		},
+		Hwmon: Hwmon{
+			Enabled: ptr.To(true), // switch to false and add flag updates
+			// Zones: []string{
+			// 	"ppt",
+			// },
+			Zones: []string{},
+			Chips: []string{},
 		},
 		Monitor: Monitor{
 			Interval:  5 * time.Second,

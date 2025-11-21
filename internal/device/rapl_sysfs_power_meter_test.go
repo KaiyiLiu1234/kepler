@@ -204,6 +204,7 @@ func (m mockZone) Index() int              { return m.index }
 func (m mockZone) Path() string            { return m.path }
 func (m mockZone) Energy() (Energy, error) { return m.energy, nil }
 func (m mockZone) MaxEnergy() Energy       { return m.maxEnergy }
+func (m mockZone) Power() (float64, error) { return 0, nil }
 
 type mockSysFSReader struct {
 	response []EnergyZone
