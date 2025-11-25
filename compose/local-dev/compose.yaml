@@ -1,0 +1,90 @@
+name: kepler-local-dev
+
+services:
+  # Kepler from local repository
+  kepler:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+      args:
+        VERSION: 0.0.0-dev
+        GIT_COMMIT: dev
+        GIT_BRANCH: dev
+
+    ports:
+      - 28282:28282
+    privileged: true
+    volumes:
+      - type: bind
+        source: /proc
+        target: /host/proc
+        read_only: true
+      - type: bind
+        source: /sys
+        target: /host/sys
+        read_only: true
+      - type: bind
+        source: ./kepler/etc/kepler/
+        target: /etc/kepler
+        read_only: true
+
+    command:
+      - --config.file=/etc/kepler/config.yaml
+
+    networks:
+      - monitoring
+
+  # Prometheus
+  prometheus:
+    build:
+      context: ./prometheus
+    ports:
+      - 39090:9090
+    volumes:
+      - prom-data:/prometheus
+    networks:
+      - monitoring
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-admin-api
+
+    healthcheck:
+      test: wget -q --spider http://localhost:9090/ -O /dev/null || exit 1
+      interval: 50s
+      timeout: 30s
+      retries: 3
+      start_period: 1m
+
+  # Grafana
+  grafana:
+    build:
+      context: ./grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/kepler/arm-dashboards.json
+
+    depends_on:
+      - prometheus
+    ports:
+      - 33000:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring
+
+    healthcheck:
+      test: curl -f http://localhost:3000/ || exit 1
+      interval: 50s
+      timeout: 30s
+      retries: 3
+      start_period: 1m
+
+volumes:
+  prom-data:
+  grafana-data:
+
+networks:
+  monitoring:

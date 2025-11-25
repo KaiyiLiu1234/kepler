@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: kepler
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: [localhost:9090]
+
+# Additional scrape configs
+scrape_config_files:
+  - /etc/prometheus/scrape-configs/*.yaml
+  - /etc/prometheus/scrape-configs/*.yml

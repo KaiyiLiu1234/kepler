@@ -1,0 +1,44 @@
+log:
+  level: info
+  format: text
+
+monitor:
+  interval: 5s
+  staleness: 1000ms
+  maxTerminated: 500
+  minTerminatedEnergyThreshold: 10
+
+host:
+  sysfs: /host/sys
+  procfs: /host/proc
+
+rapl:
+  zones: []
+
+exporter:
+  stdout:
+    enabled: false
+
+  prometheus:
+    enabled: true
+    debugCollectors:
+      - go
+      - process
+    metricsLevel:
+      - node
+      - process
+      - container
+      - vm
+      - pod
+
+debug:
+  pprof:
+    enabled: true
+
+web:
+  configFile: ""
+  listenAddresses:
+    - :28282
+
+kube:
+  enabled: false

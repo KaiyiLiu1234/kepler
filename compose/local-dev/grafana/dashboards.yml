@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: kepler
+    orgId: 1
+    folder: kepler
+    type: file
+    disableDeletion: true
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: true
